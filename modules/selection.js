@@ -1,6 +1,6 @@
 /* 选品分析：AI 选品建议 + 离线选品打分卡 + 可投资金联动选品（三引擎） */
 (function () {
-  const PLATFORMS = ['Amazon 北美', 'Amazon 欧洲', 'Walmart', 'Shopify 独立站', 'TikTok Shop', '京东', '抖音电商', '拼多多 TEMU'];
+  const PLATFORMS = ['Amazon 北美', 'Amazon 欧洲', 'Walmart', 'Shopify 独立站', 'TikTok Shop', '京东', '淘宝/天猫', '抖音电商', '拼多多 TEMU'];
 
   // 资金档位定义：决定选品偏好、推广强度、风险红线
   function tierOf(cap) {
