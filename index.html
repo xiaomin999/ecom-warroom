@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>电商作战室 · 选品/做图/活动/广告/标题/详情页一站式</title>
+  <meta name="description" content="电商一站式 AI 作战室：选品分析、AI 做图、活动策略、广告策略、标题、详情页，一个平台搞定。" />
+  <link rel="stylesheet" href="style.css?v=1" />
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部栏 -->
+    <header class="topbar">
+      <button class="icon-btn menu-toggle" id="menuToggle" aria-label="菜单">☰</button>
+      <div class="brand">
+        <span class="logo">⚔️</span>
+        <div class="brand-text">
+          <strong>电商作战室</strong>
+          <small>ShopPilot · 一站式卖货参谋</small>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="conn-pill" id="connPill" title="API 连接状态">未配置</span>
+        <button class="icon-btn" id="openSettings" aria-label="设置">⚙️</button>
+      </div>
+    </header>
+
+    <!-- 侧边导航（桌面） -->
+    <aside class="sidebar" id="sidebar">
+      <nav class="nav" id="nav"></nav>
+      <div class="sidebar-foot">
+        <button class="ghost-btn" id="openSettings2">⚙️ 模型设置</button>
+        <p class="ver">v1.0 · 纯前端 · 数据存本地</p>
+      </div>
+    </aside>
+    <div class="scrim" id="scrim"></div>
+
+    <!-- 主内容 -->
+    <main class="main" id="main">
+      <div class="module-head" id="moduleHead"></div>
+      <div class="module-body" id="moduleBody"></div>
+    </main>
+
+    <!-- 移动端底部 Tab -->
+    <nav class="bottom-nav" id="bottomNav"></nav>
+  </div>
+
+  <!-- 设置弹窗 -->
+  <div class="modal" id="settingsModal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>模型设置</h3>
+        <button class="icon-btn" id="closeSettings">✕</button>
+      </div>
+      <div class="modal-body" id="settingsBody"></div>
+      <div class="modal-foot">
+        <button class="primary-btn" id="saveSettings">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 通用生成结果弹层（用于详情/策略大结果） -->
+  <div class="toast" id="toast" hidden></div>
+
+  <!-- 依赖顺序：core 先定义 ECOM，再注册模块，最后 app 启动 -->
+  <script src="lib/core.js?v=1"></script>
+  <script src="modules/pipeline.js?v=1"></script>
+  <script src="modules/selection.js?v=1"></script>
+  <script src="modules/library.js?v=1"></script>
+  <script src="modules/content.js?v=1"></script>
+  <script src="modules/strategy.js?v=1"></script>
+  <script src="modules/image.js?v=1"></script>
+  <script src="app.js?v=1"></script>
+</body>
+</html>

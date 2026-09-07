@@ -1,0 +1,13 @@
+{
+  "name": "ecom-warroom",
+  "version": "1.9.0",
+  "private": true,
+  "description": "电商作战室 · 选品+运营一站式平台（Node 应用，含 LLM 代理）",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
