@@ -183,3 +183,13 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--brand);b
   .main{padding:12px 10px 80px}
   .module-head h1{font-size:19px}
 }
+
+/* 市场情报：模块内 tab 切换 */
+.intel-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.intel-tab{
+  padding:8px 16px;border:1px solid var(--line);background:var(--panel);
+  border-radius:999px;color:var(--ink-2);font-size:13px;transition:.15s;
+}
+.intel-tab:hover{border-color:var(--brand)}
+.intel-tab.active{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+.intel-pane{margin-bottom:4px}
