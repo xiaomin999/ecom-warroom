@@ -98,8 +98,9 @@
 
   // 从推荐方向一键带入资金分配模拟器
   function addToAlloc(name) {
-    ECOM._pendingAlloc = ECOM._pendingAlloc || [];
-    ECOM._pendingAlloc.push(name);
+    // 如果资金分配面板已渲染（即使当前未显示），直接往里面加一行
+    if (ECOM._addAllocRow) { ECOM._addAllocRow(name); }
+    else { ECOM._pendingAlloc = ECOM._pendingAlloc || []; ECOM._pendingAlloc.push(name); }
     const tab = document.querySelector('.tab[data-t="alloc"]');
     if (tab) tab.click();
   }
@@ -153,13 +154,35 @@
 
       const panel = root.querySelector('#selPanel');
       const tabs = root.querySelector('#selTabs');
+      let currentTab = 'ai';
+      const tabCache = {};
+
+      function switchTab(t) {
+        if (t === currentTab) return;
+        // 缓存当前子面板（保留表单、结果、事件）
+        if (currentTab && panel.firstChild) {
+          tabCache[currentTab] = tabCache[currentTab] || document.createElement('div');
+          while (panel.firstChild) tabCache[currentTab].appendChild(panel.firstChild);
+        }
+        // 切换 tab 激活态
+        tabs.querySelectorAll('.tab').forEach(btn => btn.classList.toggle('active', btn.dataset.t === t));
+        currentTab = t;
+        // 恢复已缓存面板，或重新渲染
+        if (tabCache[t] && tabCache[t].firstChild) {
+          while (tabCache[t].firstChild) panel.appendChild(tabCache[t].firstChild);
+        } else {
+          const map = { ai: renderAI, score: renderScore, capital: renderCapital, alloc: renderAlloc };
+          (map[t] || renderAI)(panel);
+        }
+        try { localStorage.setItem('ecom_tab_selection', t); } catch (e) {}
+      }
       tabs.addEventListener('click', e => {
         const b = e.target.closest('.tab'); if (!b) return;
-        tabs.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === b));
-        const map = { ai: renderAI, score: renderScore, capital: renderCapital, alloc: renderAlloc };
-        (map[b.dataset.t] || renderAI)(panel);
+        switchTab(b.dataset.t);
       });
-      renderAI(panel);
+      // 刷新后回到上次停留的子 tab
+      const savedTab = localStorage.getItem('ecom_tab_selection');
+      switchTab(savedTab && ['ai','score','capital','alloc'].includes(savedTab) ? savedTab : 'ai');
     }
   });
 
@@ -468,6 +491,8 @@ ${capLine}
       r.querySelector('.ar-del').addEventListener('click', () => r.remove());
       rowsBox.appendChild(r);
     }
+    // 暴露给「资金选品」推荐方向的一键＋分配入口
+    ECOM._addAllocRow = (name) => addRow(name);
     (ECOM._pendingAlloc || []).forEach(n => addRow(n));
     ECOM._pendingAlloc = [];
     if (!rowsBox.children.length) { addRow(); addRow(); }
