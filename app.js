@@ -40,13 +40,30 @@
     bottomNav.querySelectorAll('.bn-item').forEach(b => b.addEventListener('click', () => go(b.dataset.id)));
   }
 
+  /* ---------- 板块状态保留 ----------
+     切换板块时不再销毁重建 DOM，而是把当前板块的节点整体移入缓存容器，
+     切回时再移回来 —— 表单输入、生成结果、动态行、tab 状态、事件绑定全部保留。
+     数据驱动型模块（选品库 / 作战流水线）每次进入需重渲染以显示最新数据，故排除。 */
+  const viewCache = {};
+  const REFRESH_ON_ENTER = new Set(['library', 'pipeline']);
+
   function go(id) {
     const m = ECOM.modules.find(x => x.id === id);
     if (!m) return;
+    // 收起当前板块：把 body 内的节点移入其缓存容器（保留 DOM、输入与事件）
+    if (activeId) {
+      const holder = viewCache[activeId] || (viewCache[activeId] = document.createElement('div'));
+      while (body.firstChild) holder.appendChild(body.firstChild);
+    }
     activeId = id;
     head.innerHTML = `<h1>${m.icon} ${m.name}</h1><p>${m.desc || ''}</p>`;
-    body.innerHTML = '';
-    try { m.render(body); } catch (e) { body.innerHTML = '<div class="card">模块加载失败：' + (e.message || e) + '</div>'; console.error(e); }
+    if (viewCache[id] && !REFRESH_ON_ENTER.has(id)) {
+      // 恢复已缓存的板块（不重建，原样保留一切）
+      while (viewCache[id].firstChild) body.appendChild(viewCache[id].firstChild);
+    } else {
+      body.innerHTML = '';
+      try { m.render(body); } catch (e) { body.innerHTML = '<div class="card">模块加载失败：' + (e.message || e) + '</div>'; console.error(e); }
+    }
     nav.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.id === id));
     bottomNav.querySelectorAll('.bn-item').forEach(b => b.classList.toggle('active', b.dataset.id === id));
     window.scrollTo(0, 0);
