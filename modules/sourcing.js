@@ -137,41 +137,56 @@
           ? '看是否带「牛头标/实力商家/深度验厂」、成立年限≥3 年、响应快、详情用实拍而非精修图，多半是源头厂；只放代理图、起批量大但不接小单的常为贸易商。'
           : '在 ' + plat + ' 找货优先用「抖音供应链/拼多多代发/1688 一键铺货」，重点看商家是否支持「48h 发货、7 天无理由、提供实拍视频」。';
         const moq = { A: '先一件代发/拿样 3-5 件测品，不囤货', B: '首单小批量 20-50 件测款，爆了再加单', C: '可谈 100-300 件备货，谈账期', D: '直接找工厂贴牌/定制，MOQ 500+' }[tier];
+        const tags = arr => arr.map(x => `<span class="src-tag">${escapeText(x)}</span>`).join('');
         return `<div class="card">
           <h3 style="margin-top:0">🔍 ${name} · 找货方案（${plat} · ${tierName(tier)}）</h3>
-          <div class="cat-block"><b>① 1688 / 平台搜索词组合</b>
-            <p><b>核心词：</b>${kw.slice(0, 3).join('、')}</p>
-            <p><b>长尾词：</b>${long.join('、')}</p>
-            <p class="hint">技巧：先搜核心词看「实力商家/牛头标」筛选，再换长尾词找细分机会。</p>
+          <div class="src-section">
+            <div class="src-section-title">① 搜索词组合</div>
+            <div class="src-row"><span class="src-label">核心词</span><div class="src-tags">${tags(kw.slice(0, 3))}</div></div>
+            <div class="src-row"><span class="src-label">长尾词</span><div class="src-tags">${tags(long)}</div></div>
+            <p class="hint" style="margin:10px 0 0">技巧：先用核心词筛「实力商家/牛头标」，再换长尾词找细分机会。</p>
           </div>
-          <div class="cat-block"><b>② 筛选条件（按优先级）</b>
-            <p>• <b>深度验厂 / 实力商家</b>：有实地认证，踩雷概率低<br>
-               • <b>牛头标</b>：1688 源头工厂标识，优先<br>
-               • <b>交易勋章 / 复购率</b>：≥3 冠或复购高更稳<br>
-               • <b>响应 & 发货</b>：响应≤1h、48h 内发货<br>
-               • <b>退款率</b>：低于行业均值</p>
+          <div class="src-section">
+            <div class="src-section-title">② 筛选条件（按优先级）</div>
+            <ol class="src-list">
+              <li><b>深度验厂 / 实力商家</b><span>有实地认证，踩雷概率低</span></li>
+              <li><b>牛头标</b><span>1688 源头工厂标识，优先合作</span></li>
+              <li><b>交易勋章 / 复购率</b><span>≥3 冠或复购率高更稳</span></li>
+              <li><b>响应 & 发货</b><span>响应≤1h、48h 内发货</span></li>
+              <li><b>退款率</b><span>低于行业均值</span></li>
+            </ol>
           </div>
-          <div class="cat-block"><b>③ 源头工厂 vs 贸易商判断</b><p>${facTips}</p></div>
-          <div class="cat-block"><b>④ 起批量与拿样建议</b><p>${moq}</p></div>
-          <div class="cat-block risk"><b>⑤ 新手避坑</b>
-            <p>• 先拿样再大货，确认质量/包装/发货速度<br>
-               • 问清退换货政策与运费谁出<br>
-               • 不要一次性大额定金，分批付<br>
-               • 警惕「爆款保证」「稳赚」话术</p>
+          <div class="src-section">
+            <div class="src-section-title">③ 源头工厂 vs 贸易商判断</div>
+            <p style="margin:0">${facTips}</p>
+          </div>
+          <div class="src-section">
+            <div class="src-section-title">④ 起批量与拿样建议</div>
+            <p style="margin:0"><span class="src-badge">${tierName(tier)}</span> ${moq}</p>
+          </div>
+          <div class="src-section risk">
+            <div class="src-section-title">⑤ 新手避坑</div>
+            <ul class="src-list">
+              <li>先拿样再大货，确认质量/包装/发货速度</li>
+              <li>问清退换货政策与运费谁出</li>
+              <li>不要一次性大额定金，分批付</li>
+              <li>警惕「爆款保证」「稳赚」话术</li>
+            </ul>
           </div>
         </div>`;
       }
 
       function guideLiveHtml(name, plat, d) {
         const arr = a => Array.isArray(a) ? a.map(x => '<li>' + escapeText(x) + '</li>').join('') : '';
+        const tags = a => Array.isArray(a) ? a.map(x => `<span class="src-tag">${escapeText(x)}</span>`).join('') : '';
         return `<div class="card">
           <h3 style="margin-top:0">📡 ${name} · 实时货源（${plat}）</h3>
-          ${d.searchWords ? `<div class="cat-block"><b>搜索词组合</b><ul>${arr(d.searchWords)}</ul></div>` : ''}
-          ${d.filters ? `<div class="cat-block"><b>筛选条件</b><ul>${arr(d.filters)}</ul></div>` : ''}
-          ${d.factoryTips ? `<div class="cat-block"><b>源头判断</b><p>${escapeText(d.factoryTips)}</p></div>` : ''}
-          ${d.priceBand ? `<div class="cat-block"><b>价格带</b><p>${escapeText(d.priceBand)}</p></div>` : ''}
-          ${d.moq ? `<div class="cat-block"><b>起批量/拿样</b><p>${escapeText(d.moq)}</p></div>` : ''}
-          ${d.risk ? `<div class="cat-block risk"><b>风险点</b><ul>${arr(d.risk)}</ul></div>` : ''}
+          ${d.searchWords ? `<div class="src-section"><div class="src-section-title">搜索词组合</div><div class="src-tags">${tags(d.searchWords)}</div></div>` : ''}
+          ${d.filters ? `<div class="src-section"><div class="src-section-title">筛选条件</div><ol class="src-list">${arr(d.filters)}</ol></div>` : ''}
+          ${d.factoryTips ? `<div class="src-section"><div class="src-section-title">源头判断</div><p style="margin:0">${escapeText(d.factoryTips)}</p></div>` : ''}
+          ${d.priceBand ? `<div class="src-section"><div class="src-section-title">价格带</div><p style="margin:0">${escapeText(d.priceBand)}</p></div>` : ''}
+          ${d.moq ? `<div class="src-section"><div class="src-section-title">起批量 / 拿样</div><p style="margin:0">${escapeText(d.moq)}</p></div>` : ''}
+          ${d.risk ? `<div class="src-section risk"><div class="src-section-title">风险点</div><ul class="src-list">${arr(d.risk)}</ul></div>` : ''}
           <p class="hint" style="margin:0">数据来自你配置的模型实时联网搜索，仅供参考，下单前务必自行拿样核实。</p>
         </div>`;
       }
