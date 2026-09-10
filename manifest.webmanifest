@@ -1,0 +1,19 @@
+{
+  "name": "电商作战室 · 国内电商一站式卖货参谋",
+  "short_name": "电商作战室",
+  "description": "面向国内电商的一站式 AI 作战室：市场情报、选品分析、AI 做图、活动策略、广告策略、标题、详情页，一个平台搞定。",
+  "lang": "zh-CN",
+  "start_url": "./?utm_source=homescreen",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#FF6B1A",
+  "categories": ["business", "shopping", "productivity"],
+  "icons": [
+    { "src": "./assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./assets/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "./assets/icons/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

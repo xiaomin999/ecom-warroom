@@ -165,4 +165,11 @@
   refreshConn();
   detectProxy();
   go(ECOM.modules[0].id);
+
+  /* ---------- PWA：注册 Service Worker（仅 https，支持「安装到桌面」与离线） ---------- */
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
 })();
