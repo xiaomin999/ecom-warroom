@@ -227,9 +227,17 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--brand);b
 .score-badge{display:inline-flex;align-items:baseline;gap:8px;border:2px solid var(--brand);border-radius:12px;padding:10px 18px}
 .score-badge .num{font-size:32px;font-weight:800}
 .score-badge .lab{font-size:14px;color:var(--ink-2)}
-.cmp-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
-.cmp-table th,.cmp-table td{border:1px solid var(--line);padding:6px 8px;text-align:left}
-.cmp-table th{background:var(--brand-soft);color:var(--ink-2);font-weight:600}
+.cmp-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;min-width:820px}
+.cmp-table th,.cmp-table td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top;min-width:58px}
+.cmp-table th{background:var(--brand-soft);color:var(--ink-2);font-weight:600;white-space:nowrap}
+.cmp-table td input,.cmp-table td select{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:6px;padding:5px 6px;font-size:13px;background:var(--panel);color:var(--ink)}
+.cmp-table td input:focus,.cmp-table td select:focus{outline:none;border-color:var(--brand)}
+.cmp-link{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--brand);text-decoration:none;font-weight:600;margin-bottom:4px}
+.cmp-link:hover{text-decoration:underline}
+.cmp-link.disabled{color:var(--ink-3);pointer-events:none}
+.cmp-table .best-price{background:#e6f9ed}
+.cmp-table .best-score{background:#e8f0fe}
+.cmp-table .has-dropship{background:#e6f9ed}
 .cmp-del{border:none;background:#fde8e8;color:#c0392b;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:13px}
 .src-section{border:1px solid var(--line);background:var(--panel);border-radius:var(--radius);padding:14px;margin:12px 0 0}
 .src-section:first-of-type{margin-top:0}

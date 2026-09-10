@@ -322,13 +322,14 @@
       /* ============ 子 tab 4：供应商对比 ============ */
       function renderCompare(h) {
         const rows = ECOM.store.get().srcCompare || [
-          { name: '', price: '', moq: '', addr: '', score: '', ship: '', note: '' },
-          { name: '', price: '', moq: '', addr: '', score: '', ship: '', note: '' }
+          { name: '', link: '', price: '', moq: '', addr: '', score: '', dropship: '', sample: '', cycle: '', ship: '', note: '' },
+          { name: '', link: '', price: '', moq: '', addr: '', score: '', dropship: '', sample: '', cycle: '', ship: '', note: '' }
         ];
         h.innerHTML = `
           <div class="card">
             <p style="margin-top:0"><b>📊 供应商对比</b> · 录入多家货源横向比价，自动高亮最低价/最高评分，可导出 PDF/Word 拿去谈。</p>
-            <div id="cmp_rows"></div>
+            <p class="hint" style="margin:0">建议记录：链接、拿货价、起批量、发货地、评分、是否一件代发、样品费、供货周期、运费、备注。</p>
+            <div id="cmp_rows" style="overflow-x:auto;margin-top:10px"></div>
             <div class="row" style="margin-top:10px;gap:8px">
               <button class="secondary-btn" id="cmp_add">＋ 加一行</button>
               <button class="secondary-btn" id="cmp_clear">清空</button>
@@ -337,25 +338,75 @@
             </div>
           </div>`;
         const box = h.querySelector('#cmp_rows');
-        const FIELDS = [['name', '供应商'], ['price', '拿货价¥'], ['moq', '起批量'], ['addr', '发货地'], ['score', '店铺评分'], ['ship', '运费¥'], ['note', '备注']];
+        const FIELDS = [
+          ['name', '供应商'],
+          ['link', '链接'],
+          ['price', '拿货价¥'],
+          ['moq', '起批量'],
+          ['addr', '发货地'],
+          ['score', '评分'],
+          ['dropship', '代发'],
+          ['sample', '样品费¥'],
+          ['cycle', '周期'],
+          ['ship', '运费¥'],
+          ['note', '备注']
+        ];
+        const isUrl = s => /^https?:\/\//.test(String(s).trim());
+        function cellHtml(r, i, k) {
+          const v = r[k] || '';
+          if (k === 'link') return `<a href="${isUrl(v) ? escapeAttr(v) : '#'}" target="_blank" rel="noopener" class="cmp-link${isUrl(v) ? '' : ' disabled'}">${isUrl(v) ? '打开' : '—'}</a><input data-r="${i}" data-k="link" value="${escapeAttr(v)}" placeholder="https://...">`;
+          if (k === 'dropship') return `<select data-r="${i}" data-k="dropship"><option value="">请选择</option><option value="是" ${v === '是' ? 'selected' : ''}>是</option><option value="否" ${v === '否' ? 'selected' : ''}>否</option></select>`;
+          return `<input data-r="${i}" data-k="${k}" value="${escapeAttr(v)}" placeholder="${k === 'cycle' ? '如 3-5天' : ''}">`;
+        }
         function draw() {
-          box.innerHTML = `<table class="cmp-table"><thead><tr>${FIELDS.map(f => '<th>' + f[1] + '</th>').join('')}<th></th></tr></thead><tbody>${rows.map((r, i) => '<tr>' + FIELDS.map(f => `<td><input data-r="${i}" data-k="${f[0]}" value="${escapeAttr(r[f[0]] || '')}" style="width:100%;min-width:60px"></td>`).join('') + `<td><button class="cmp-del" data-i="${i}">✕</button></td>`).join('')}</tbody></table>`;
-          box.querySelectorAll('input').forEach(inp => inp.addEventListener('input', () => {
+          box.innerHTML = `<table class="cmp-table"><thead><tr>${FIELDS.map(f => '<th>' + f[1] + '</th>').join('')}<th></th></tr></thead><tbody>${rows.map((r, i) => '<tr>' + FIELDS.map(f => `<td>${cellHtml(r, i, f[0])}</td>`).join('') + `<td><button class="cmp-del" data-i="${i}">✕</button></td>`).join('')}</tbody></table>`;
+          highlight();
+          box.querySelectorAll('input,select').forEach(inp => inp.addEventListener('input', () => {
             rows[+inp.dataset.r][inp.dataset.k] = inp.value;
             ECOM.store.set({ srcCompare: rows });
+            if (inp.dataset.k === 'price' || inp.dataset.k === 'score' || inp.dataset.k === 'dropship') highlight();
+            if (inp.dataset.k === 'link') draw(); // 重新渲染让链接状态更新
           }));
           box.querySelectorAll('.cmp-del').forEach(b => b.addEventListener('click', () => {
-            rows.splice(+b.dataset.i, 1); if (!rows.length) rows.push({ name: '', price: '', moq: '', addr: '', score: '', ship: '', note: '' });
+            rows.splice(+b.dataset.i, 1); if (!rows.length) rows.push({ name: '', link: '', price: '', moq: '', addr: '', score: '', dropship: '', sample: '', cycle: '', ship: '', note: '' });
             ECOM.store.set({ srcCompare: rows }); draw();
           }));
         }
+        function highlight() {
+          const t = box.querySelector('table'); if (!t) return;
+          const body = t.querySelector('tbody'); if (!body) return;
+          body.querySelectorAll('td').forEach(td => td.classList.remove('best-price', 'best-score', 'has-dropship'));
+          const priceIdx = FIELDS.findIndex(f => f[0] === 'price');
+          const scoreIdx = FIELDS.findIndex(f => f[0] === 'score');
+          const dsIdx = FIELDS.findIndex(f => f[0] === 'dropship');
+          const nums = rows.map(r => parseFloat(String(r.price).replace(/[^0-9.]/g, ''))).filter(n => !isNaN(n) && n > 0);
+          const minPrice = nums.length ? Math.min(...nums) : null;
+          const scores = rows.map(r => parseFloat(r.score)).filter(n => !isNaN(n) && n > 0);
+          const maxScore = scores.length ? Math.max(...scores) : null;
+          Array.from(body.rows).forEach((tr, i) => {
+            const r = rows[i];
+            if (minPrice != null) {
+              const p = parseFloat(String(r.price).replace(/[^0-9.]/g, ''));
+              if (!isNaN(p) && p === minPrice) tr.cells[priceIdx].classList.add('best-price');
+            }
+            if (maxScore != null) {
+              const s = parseFloat(r.score);
+              if (!isNaN(s) && s === maxScore) tr.cells[scoreIdx].classList.add('best-score');
+            }
+            if (r.dropship === '是' && dsIdx >= 0) tr.cells[dsIdx].classList.add('has-dropship');
+          });
+        }
         draw();
-        h.querySelector('#cmp_add').addEventListener('click', () => { rows.push({ name: '', price: '', moq: '', addr: '', score: '', ship: '', note: '' }); ECOM.store.set({ srcCompare: rows }); draw(); });
-        h.querySelector('#cmp_clear').addEventListener('click', () => { rows.length = 0; rows.push({ name: '', price: '', moq: '', addr: '', score: '', ship: '', note: '' }); ECOM.store.set({ srcCompare: rows }); draw(); });
+        h.querySelector('#cmp_add').addEventListener('click', () => { rows.push({ name: '', link: '', price: '', moq: '', addr: '', score: '', dropship: '', sample: '', cycle: '', ship: '', note: '' }); ECOM.store.set({ srcCompare: rows }); draw(); });
+        h.querySelector('#cmp_clear').addEventListener('click', () => { rows.length = 0; rows.push({ name: '', link: '', price: '', moq: '', addr: '', score: '', dropship: '', sample: '', cycle: '', ship: '', note: '' }); ECOM.store.set({ srcCompare: rows }); draw(); });
         function toMd() {
           const head = '| ' + FIELDS.map(f => f[1]).join(' | ') + ' |';
           const sep = '| ' + FIELDS.map(() => '---').join(' | ') + ' |';
-          const body = rows.filter(r => r.name).map(r => '| ' + FIELDS.map(f => (r[f[0]] || '')).join(' | ') + ' |').join('\n');
+          const body = rows.filter(r => r.name).map(r => '| ' + FIELDS.map(f => {
+            let v = r[f[0]] || '';
+            if (f[0] === 'link' && isUrl(v)) v = `[链接](${v})`;
+            return v;
+          }).join(' | ') + ' |').join('\n');
           return '# 供应商对比\n\n' + head + '\n' + sep + '\n' + body + '\n';
         }
         h.querySelector('#cmp_pdf').addEventListener('click', () => ECOM.ui.exportPDF('供应商对比.pdf', '供应商对比', toMd()));
