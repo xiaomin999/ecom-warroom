@@ -27,7 +27,7 @@
     group: '货源',
     desc: '解决货源难题：找货导航、货源体检打分、代发 vs 囤货决策、多供应商对比导出，全在国内电商语境。',
     render(root) {
-      const cap = ECOM._capital || 0;
+      const cap = ECOM._capital || (ECOM.store.get() || {}).capital || 0;
       root.innerHTML = `
         <div class="card">
           <p style="margin-top:0"><b>📦 货源参谋</b> · 货源是电商利润与风险的核心。这里帮你解决四件事：<b>去哪找、怎么辨、定什么价、怎么避坑</b>。所有工具都可离线用，联网部分复用你在「⚙️ 模型设置」填的模型。</p>
@@ -103,7 +103,7 @@
         if (!name) { ECOM.ui.toast('请先填写要找的品类'); return; }
         const plat = h.querySelector('#g_plat').value;
         const tierSel = h.querySelector('#g_tier').value;
-        const tier = tierSel || tierOf(ECOM._capital || 0) || 'B';
+        const tier = tierSel || tierOf(ECOM._capital || (ECOM.store.get() || {}).capital || 0) || 'B';
         const out = h.querySelector('#g_out');
         if (!live) {
           out.innerHTML = guideStatic(name, plat, tier);
@@ -290,7 +290,7 @@
 
       /* ============ 子 tab 3：代发决策 ============ */
       function renderDropship(h) {
-        const cap = ECOM._capital || 0;
+        const cap = ECOM._capital || (ECOM.store.get() || {}).capital || 0;
         const tier = tierOf(cap) || 'B';
         const plans = {
           A: { mode: '纯一件代发', first: Math.round(cap * 0.3), buffer: Math.round(cap * 0.5), txt: '资金少，绝对不囤货。用 1688/拼多多代发或抖音供应链，出单后厂家直发，你只赚差价。首单测品预算控制在可投资金的 30%，留 50% 做安全垫与推广。' },

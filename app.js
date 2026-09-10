@@ -222,6 +222,11 @@
   scrim.addEventListener('click', closeSidebar);
 
   /* ---------- 启动 ---------- */
+  // 从设置中恢复可投资金（跨模块共享：选品分析/品类灵感/货源参谋）
+  try {
+    const s = ECOM.store.get();
+    if (s && s.capital) ECOM._capital = Number(s.capital) || 0;
+  } catch (e) {}
   renderNav();
   refreshConn();
   detectProxy();

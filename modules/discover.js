@@ -23,7 +23,7 @@
     group: '市场情报',
     desc: '联网搜罗 2026 年国内电商可操作品类，按你的资金档灵活推荐，一键带入资金选品测算。',
     render(root) {
-      const cap = ECOM._capital || 0;
+      const cap = ECOM._capital || (ECOM.store.get() || {}).capital || 0;
       root.innerHTML = `
         <div class="card">
           <p style="margin-top:0"><b>2026 国内电商品类灵感</b> · 数据更新于 ${DATA.updated}。我已联网检索行业报告与平台公开数据（天猫 618、博晓通、各平台趋势）整理出下列可操作方向，按资金档分组，你不必自己搜。</p>
