@@ -193,3 +193,27 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--brand);b
 .intel-tab:hover{border-color:var(--brand)}
 .intel-tab.active{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
 .intel-pane{margin-bottom:4px}
+
+/* ===== 品类灵感（discover） ===== */
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:6px 14px;border:1px solid var(--line);background:var(--panel);border-radius:999px;color:var(--ink-2);font-size:13px;transition:.15s}
+.chip:hover{border-color:var(--brand)}
+.chip.active{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:16px}
+.cat-card{border:1px solid var(--line);background:var(--panel);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px}
+.cat-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.cat-head b{font-size:15px}
+.cat-plats{display:flex;gap:6px;flex-wrap:wrap}
+.plat{font-size:12px;color:var(--ink-2);background:var(--brand-soft);border-radius:6px;padding:2px 8px}
+.tier-tag{font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px;color:#fff}
+.tier-tag.t-A{background:#10b981}
+.tier-tag.t-B{background:#3b82f6}
+.tier-tag.t-C{background:#8b5cf6}
+.tier-tag.t-D{background:#f59e0b}
+.cat-line{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-2)}
+.cat-line b{color:var(--ink)}
+.cat-block b{display:block;font-size:12px;color:var(--brand);margin-bottom:2px}
+.cat-block p{margin:0;font-size:13px;color:var(--ink-2);line-height:1.5}
+.cat-block.risk b{color:var(--bad)}
+.cat-bring{margin-top:6px}
+@media (max-width:820px){.cat-grid{grid-template-columns:1fr}}
