@@ -1,6 +1,6 @@
 /* 内容生成：标题 / 卖点文案 / 详情页（共享 LLM 引擎） */
 (function () {
-  const PLATFORMS = ['Amazon 北美', 'Walmart', 'TikTok Shop', 'TEMU', '淘宝/天猫', '京东', '抖音电商'];
+  const PLATFORMS = ['淘宝/天猫', '京东', '抖音电商', '拼多多', '小红书', '视频号', '快手电商'];
 
   /* ===== 标题生成 ===== */
   ECOM.register({
@@ -37,13 +37,13 @@
         const name = v('#t_name'), plat = v('#t_plat'), feat = v('#t_feat'),
               kw = v('#t_kw'), num = v('#t_num');
         if (!name.trim()) { ECOM.ui.toast('请填写商品名/核心词'); return; }
-        const prompt = `你是资深电商文案，请为「${name}」在【${plat}】平台生成 ${num} 条高点击率商品标题。
+        const prompt = `你是资深国内电商文案，请为「${name}」在【${plat}】平台生成 ${num} 条高点击率商品标题。
 商品卖点：
 ${feat || '（未提供，请合理推断）'}
 ${kw ? '必须埋入的关键词：' + kw : ''}
 
 要求：
-- 符合 ${plat} 的标题风格与字数/字符上限（如 Amazon ≤200字符、淘宝≤30字）。
+- 符合 ${plat} 的标题风格与字数/字符上限（如淘宝/天猫 ≤30字、京东 ≤40字、抖音 ≤25字）。
 - 突出核心卖点与搜索词，避免堆砌与违规词。
 - 用 Markdown 有序列表输出 ${num} 条，每条后括号标注「埋词：xxx」与「适用场景」。
 - 最后给一条「最优主推标题」并说明原因。`;
@@ -63,7 +63,7 @@ ${kw ? '必须埋入的关键词：' + kw : ''}
     name: '卖点文案',
     icon: '✍️',
     group: '内容',
-    desc: '生成 Amazon 五点描述 + 详情卖点文案，可选调性。',
+    desc: '生成详情页卖点文案 / 商品卖点提炼，可选调性。',
     render(root) {
       root.innerHTML = `
         <div class="card">
@@ -97,8 +97,8 @@ ${kw ? '必须埋入的关键词：' + kw : ''}
 ${feat || '（请合理推断）'}
 
 用中文 Markdown 输出：
-## 一、五点描述（Bullet Points）
-5 条，每条以「**核心词**：」开头，突出利益点+证据，符合平台合规（不写绝对化违禁词）。
+## 一、核心卖点提炼（5 条）
+每条以「**核心词**：」开头，突出利益点+证据，符合平台合规（不写绝对化违禁词）。
 
 ## 二、首屏主文案（约60字）
 一句话抓住注意力。
@@ -132,7 +132,7 @@ ${feat || '（请合理推断）'}
             <div class="field"><label>商品名</label>
               <input type="text" id="d_name" placeholder="例如：便携无线真空封口机"></div>
             <div class="field"><label>目标平台/人群</label>
-              <input type="text" id="d_aud" placeholder="例如：Amazon 北美 / 注重保鲜的家庭"></div>
+              <input type="text" id="d_aud" placeholder="例如：淘宝/天猫 / 注重食材保鲜的家庭"></div>
           </div>
           <div class="field"><label>核心卖点<span class="hint">每行一条</span></label>
             <textarea id="d_feat" placeholder="例如：&#10;干湿两用&#10;便携充电&#10;食品保鲜30天&#10;低噪静音"></textarea></div>

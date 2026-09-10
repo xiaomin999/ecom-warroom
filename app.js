@@ -11,14 +11,20 @@
   let activeId = null;
 
   /* ---------- 导航渲染 ---------- */
+  // 按国内电商工作流排序：先看情报 → 再选品 → 再做内容 → 再上策略 → 最后全流程
+  const GROUP_ORDER = ['市场情报', '选品', '内容', '策略', '一站式'];
   function renderNav() {
-    // 侧边：按 group 分组
     const groups = [];
     const map = {};
     ECOM.modules.forEach(m => {
       const g = m.group || '其它';
       if (!map[g]) { map[g] = []; groups.push(g); }
       map[g].push(m);
+    });
+    groups.sort((a, b) => {
+      const ia = GROUP_ORDER.indexOf(a), ib = GROUP_ORDER.indexOf(b);
+      if (ia === -1 && ib === -1) return a.localeCompare(b);
+      return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
     });
     nav.innerHTML = groups.map(g =>
       `<div class="nav-group">${g}</div>` +
@@ -54,12 +60,12 @@
     const s = ECOM.store.get();
     settingsBody.innerHTML = `
       <div class="field"><label>API Base URL<span class="hint">OpenAI 兼容，含 /v1</span></label>
-        <input type="text" id="f_base" placeholder="https://api.deepseek.com/v1" value="${s.baseUrl || ''}">
-        <div class="hint" style="margin-top:4px">常见：DeepSeek https://api.deepseek.com/v1 ｜ OpenAI https://api.openai.com/v1 ｜ 通义 https://dashscope.aliyuncs.com/compatible-mode/v1 ｜ 智谱 https://open.bigmodel.cn/api/paas/v4</div></div>
+        <input type="text" id="f_base" placeholder="https://dashscope.aliyuncs.com/compatible-mode/v1" value="${s.baseUrl || ''}">
+        <div class="hint" style="margin-top:4px">国内常用：通义 https://dashscope.aliyuncs.com/compatible-mode/v1 ｜ DeepSeek https://api.deepseek.com/v1 ｜ 智谱 https://open.bigmodel.cn/api/paas/v4</div></div>
       <div class="field"><label>API Key</label>
         <input type="password" id="f_key" placeholder="sk-..." value="${s.apiKey || ''}"></div>
       <div class="field"><label>模型名</label>
-        <input type="text" id="f_model" placeholder="gpt-4o-mini / deepseek-chat" value="${s.model || 'gpt-4o-mini'}"></div>
+        <input type="text" id="f_model" placeholder="qwen-turbo / deepseek-chat" value="${s.model || 'qwen-turbo'}"></div>
       <div class="field"><label class="hint" style="font-weight:600">↓ 服务端代理（解决 CORS / 隐藏 Key，部署为 Node 应用时用）</label>
         <label style="display:flex;align-items:center;gap:8px;font-weight:400"><input type="checkbox" id="f_proxy" ${s.useProxy ? 'checked' : ''} style="width:auto"> 启用代理（请求发往 /api/llm，Key 由服务端环境变量保管）</label>
         <div class="hint" style="margin-top:4px">勾选后，浏览器不再携带你的 Key，由服务端 /api/llm 转发（需 server 环境变量 LLM_BASE_URL / LLM_API_KEY）。此时上方 Base/Key 可留空。</div></div>
@@ -82,7 +88,7 @@
     ECOM.store.set({
       baseUrl: document.getElementById('f_base').value.trim(),
       apiKey: document.getElementById('f_key').value.trim(),
-      model: document.getElementById('f_model').value.trim() || 'gpt-4o-mini',
+      model: document.getElementById('f_model').value.trim() || 'qwen-turbo',
       useProxy: document.getElementById('f_proxy').checked,
       imageBaseUrl: document.getElementById('f_ibase').value.trim(),
       imageApiKey: document.getElementById('f_ikey').value.trim(),
@@ -95,7 +101,7 @@
   async function testConn() {
     const base = document.getElementById('f_base').value.trim();
     const key = document.getElementById('f_key').value.trim();
-    const model = document.getElementById('f_model').value.trim() || 'gpt-4o-mini';
+    const model = document.getElementById('f_model').value.trim() || 'qwen-turbo';
     const proxy = document.getElementById('f_proxy').checked;
     const btn = document.getElementById('f_test');
     if (!proxy && (!base || !key)) { ECOM.ui.toast('请先填写 API Base / Key，或勾选代理'); return; }

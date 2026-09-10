@@ -75,14 +75,14 @@
     render(root) {
       function briefLine() {
         const b = ECOM.getBrief();
-        if (!b || !b.name) return '<span class="hint">尚未保存选品简报。请先到「选品分析 → 💰 资金选品」填写并点"测算备货与运营建议"存为简报。</span>';
+        if (!b || !b.name) return '<span class="hint">尚未保存选品简报。请先到「选品分析 → 💰 资金选品」填写并点「测算备货与运营建议」存为简报。</span>';
         const aud = b.audience ? (' · ' + b.audience) : '';
         return '<b>📌 当前简报：</b>' + b.name + (b.platform ? (' · ' + b.platform) : '') + aud + (b.tier ? (' · ' + b.tier) : '');
       }
       root.innerHTML = `
         <div class="card">
           <p id="pl_brief" style="margin-top:0">${briefLine()}</p>
-          <p class="hint" style="margin:0 0 12px">一键调用下方全部模块（已自动带入简报）。图像 Prompt 离线可用；标题/文案/详情页/活动/广告 需先在「⚙️ 设置」配置模型 API。</p>
+          <p class="hint" style="margin:0 0 12px">一键调用下方全部模块（已自动带入简报）。图像 Prompt 离线可用；标题/文案/详情页/活动/广告 需先在「⚙️ 模型设置」配置通义/DeepSeek 等 API。</p>
           <button class="primary-btn" id="pl_run" style="font-size:15px;padding:12px 18px">🚀 一键生成全套作战方案</button>
           <div id="pl_links" class="btn-row" style="margin-top:14px;flex-wrap:wrap"></div>
           <div id="pl_out"></div>

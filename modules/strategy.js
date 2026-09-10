@@ -1,6 +1,6 @@
 /* 策略模块：活动策略 + 广告策略 */
 (function () {
-  const PLATFORMS = ['Amazon 北美', 'Walmart', 'TikTok Shop', 'TEMU', '淘宝/天猫', '京东', '抖音电商', '独立站 Shopify'];
+  const PLATFORMS = ['淘宝/天猫', '京东', '抖音电商', '拼多多', '小红书', '视频号', '快手电商'];
 
   /* ===== 活动策略 ===== */
   ECOM.register({
@@ -14,7 +14,7 @@
         <div class="card">
           <div class="row">
             <div class="field"><label>活动类型</label>
-              <select id="cp_type"><option>大促（黑五/双11/Prime Day）</option><option>节日营销</option><option>新品首发</option><option>清仓/换季</option><option>会员日/复购</option></select></div>
+              <select id="cp_type"><option>大促（双11/618/年货节）</option><option>节日营销（春节/母亲节/情人节）</option><option>新品首发</option><option>清仓/换季</option><option>会员日/复购</option></select></div>
             <div class="field"><label>平台</label>
               <select id="cp_plat">${PLATFORMS.map(p => `<option>${p}</option>`).join('')}</select></div>
           </div>
@@ -84,7 +84,7 @@
         <div class="card">
           <div class="row">
             <div class="field"><label>广告渠道</label>
-              <select id="ad_chan"><option>Amazon Sponsored（SP/SB/SD）</option><option>TikTok Ads</option><option>Google Ads</option><option>Meta（FB/IG）</option><option>淘宝/京东 直通车</option></select></div>
+              <select id="ad_chan"><option>淘宝直通车/超级推荐</option><option>京东快车/购物触点</option><option>抖音千川</option><option>小红书聚光</option><option>拼多多全站推广</option><option>微信视频号广告</option></select></div>
             <div class="field"><label>商品 / 落地页</label>
               <input type="text" id="ad_prod" placeholder="例如：无线真空封口机 listing"></div>
           </div>
@@ -92,10 +92,10 @@
             <div class="field"><label>投放目标</label>
               <select id="ad_goal"><option>转化/出单</option><option>曝光/品牌</option><option>点击/引流</option><option>ROI 最优</option></select></div>
             <div class="field"><label>日预算</label>
-              <input type="text" id="ad_budget" placeholder="例如：$50/天 或 ¥300/天"></div>
+              <input type="text" id="ad_budget" placeholder="例如：¥300/天 或 ¥1000/天"></div>
           </div>
           <div class="field"><label>核心卖点 / 关键词方向<span class="hint">每行一条</span></label>
-            <textarea id="ad_kw" placeholder="例如：&#10;vacuum sealer&#10;food saver machine&#10;便携保鲜&#10;送礼"></textarea></div>
+            <textarea id="ad_kw" placeholder="例如：&#10;真空封口机&#10;便携保鲜&#10;食品保鲜袋&#10;厨房好物&#10;送礼"></textarea></div>
           <div class="btn-row"><button class="primary-btn" id="ad_gen">生成广告策略</button>
             <span class="hint">需配置模型 API</span></div>
           <div id="ad_out"></div>

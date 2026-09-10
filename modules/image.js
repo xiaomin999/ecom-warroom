@@ -8,9 +8,11 @@
     '3D渲染': 'high-end 3D product render, cinematic lighting, reflective floor, octane render, premium look'
   };
   const SIZES = {
-    'Amazon 1000x1000': '1024x1024',
     '淘宝/天猫 800x800': '1024x1024',
-    'Instagram 1080x1080': '1024x1024',
+    '京东 800x800': '1024x1024',
+    '抖音/小红书 1080x1080': '1024x1024',
+    '拼多多 800x800': '1024x1024',
+    '详情页长图 750x1200': '1024x1792',
     '横幅 1200x628': '1792x1024',
     '自由（不限定）': '1024x1024'
   };
@@ -60,7 +62,7 @@
         const toneLine = tone ? 'Visual tone: ' + tone + '.' : '';
         const en = `Professional e-commerce product image of ${name}. ${style}. ${featLine} ${toneLine} High resolution, sharp focus, commercial photography, 8k, detailed.`;
         const zh = `（中文意图）为「${name}」生成${v('#i_style')}风格图${tone ? '，调性：' + tone : ''}${feats ? '，突出：' + featLine.replace('Featuring: ', '').replace('.', '') : ''}。`;
-        return `# 图像生成 Prompt\n\n## 英文 Prompt（直接喂给 DALL·E / 通义万相 / Stable Diffusion）\n${en}\n\n## 中文说明\n${zh}\n\n## 推荐参数\n- 尺寸：${SIZES[v('#i_size')] || '1024x1024'}\n- 步数：30–50（SD 类）\n- 负向词：text, watermark, low quality, deformed, extra limbs`;
+        return `# 图像生成 Prompt\n\n## 英文 Prompt（直接喂给 通义万相 / DALL·E / Stable Diffusion）\n${en}\n\n## 中文说明\n${zh}\n\n## 推荐参数\n- 尺寸：${SIZES[v('#i_size')] || '1024x1024'}\n- 步数：30–50（SD 类）\n- 负向词：text, watermark, low quality, deformed, extra limbs`;
       }
 
       root.querySelector('#i_build').addEventListener('click', () => {

@@ -1,6 +1,6 @@
 /* 选品分析：AI 选品建议 + 离线选品打分卡 + 可投资金联动选品（三引擎） */
 (function () {
-  const PLATFORMS = ['Amazon 北美', 'Amazon 欧洲', 'Walmart', 'Shopify 独立站', 'TikTok Shop', '京东', '淘宝/天猫', '抖音电商', '拼多多 TEMU'];
+  const PLATFORMS = ['淘宝/天猫', '京东', '抖音电商', '拼多多', '小红书', '视频号', '快手电商', '1688'];
 
   // 资金档位定义：决定选品偏好、推广强度、风险红线
   function tierOf(cap) {
@@ -169,20 +169,20 @@
         <div class="field"><label>目标平台</label>
           <select id="s_plat">${PLATFORMS.map(p => `<option>${p}</option>`).join('')}</select></div>
         <div class="field"><label>主推品类<span class="hint">如 厨房小家电 / 宠物用品</span></label>
-          <input type="text" id="s_cat" placeholder="例如：真空封口机 / 收纳整理"></div>
+          <input type="text" id="s_cat" placeholder="例如：真空封口机 / 桌面收纳 / 厨房小工具"></div>
       </div>
       <div class="row">
-        <div class="field"><label>客单价区间（当地货币）</label>
-          <input type="text" id="s_price" placeholder="例如：$15–$35 / ¥50–120"></div>
+        <div class="field"><label>客单价区间（¥）</label>
+          <input type="text" id="s_price" placeholder="例如：¥29–¥99 / ¥99–¥299"></div>
         <div class="field"><label>建议数量</label>
           <select id="s_num"><option>5</option><option>3</option><option>8</option><option>10</option></select></div>
       </div>
       <div class="field"><label>自身供应链 / 优势<span class="hint">决定推荐偏向</span></label>
-        <input type="text" id="s_supply" placeholder="例如：自有注塑厂、跨境物流合作、可定制外观"></div>
+        <input type="text" id="s_supply" placeholder="例如：自有注塑厂、1688 一件代发渠道、可定制外观"></div>
       <div class="field"><label>目标人群</label>
-        <input type="text" id="s_aud" placeholder="例如：欧美租房年轻夫妇、注重收纳的家庭"></div>
+        <input type="text" id="s_aud" placeholder="例如：一二线城市租房年轻人、注重收纳的家庭"></div>
       <div class="field"><label>已知市场数据 / 竞品观察<span class="hint">选填，粘贴销量、评论、链接等</span></label>
-        <textarea id="s_data" placeholder="可选：竞品 ASIN、热搜词、差评痛点、利润测算…"></textarea></div>
+        <textarea id="s_data" placeholder="可选：竞品链接/标题、热搜词、差评痛点、利润测算…"></textarea></div>
       <div class="btn-row">
         <button class="primary-btn" id="s_gen">生成选品建议</button>
         <span class="hint">需配置模型 API</span>
@@ -201,7 +201,7 @@
       const capLine = cap > 0
         ? `【可投资金】¥${cap.toLocaleString()}（${tierOf(cap).name}档）——推荐方向须贴合该资金档的 MOQ、客单价与压货承受力。`
         : '【可投资金】未填写——可在顶部「可投资金」填写后重生成，以获得更贴合资金实力的选品建议。';
-      const prompt = `你是一名资深的跨境电商选品专家，擅长 ${plat} 平台。
+      const prompt = `你是一名资深的国内电商选品专家，擅长 ${plat} 平台。
 请基于以下信息，推荐 ${num} 个值得切入的细分选品方向，用中文输出。
 
 【目标平台】${plat}
@@ -227,7 +227,7 @@ ${capLine}
 注意：只基于给定信息做合理推演，不编造具体销量数字；如信息不足，明确标注"需进一步验证"。`;
       await ECOM.ui.run(e.target, async () => {
         const text = await ECOM.llm([
-          ECOM.msg('system', '你是专业的跨境电商选品顾问，输出结构化、可落地的选品建议，尤其关注资金与风险的匹配。'),
+          ECOM.msg('system', '你是专业的国内电商选品顾问，输出结构化、可落地的选品建议，尤其关注资金与风险的匹配。'),
           ECOM.msg('user', prompt)
         ], { temperature: 0.6 });
         card.set(text, '选品建议.md');
