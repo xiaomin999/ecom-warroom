@@ -47,9 +47,51 @@
   const viewCache = {};
   const REFRESH_ON_ENTER = new Set(['library', 'pipeline']);
 
+  /* ---------- 草稿持久化：刷新页面后表单仍在 ----------
+     表单型模块边输入边把字段值写入 localStorage；刷新后首次进入该模块时自动回填。
+     数据驱动型模块（选品库 / 作战流水线）无表单草稿，排除。 */
+  const DRAFT_KEY = id => 'ecom_draft_' + id;
+  function collectFields(container) {
+    const out = {};
+    container.querySelectorAll('input, textarea, select').forEach(el => {
+      if (!el.id) return;
+      out[el.id] = (el.type === 'checkbox' || el.type === 'radio') ? el.checked : el.value;
+    });
+    return out;
+  }
+  function saveDraft(id, container) {
+    try { localStorage.setItem(DRAFT_KEY(id), JSON.stringify(collectFields(container))); } catch (e) {}
+  }
+  function restoreDraft(id, container) {
+    let raw; try { raw = localStorage.getItem(DRAFT_KEY(id)); } catch (e) { return; }
+    if (!raw) return;
+    let data; try { data = JSON.parse(raw); } catch (e) { return; }
+    Object.keys(data).forEach(fid => {
+      const el = container.querySelector('#' + (window.CSS && CSS.escape ? CSS.escape(fid) : fid));
+      if (!el) return;
+      if (el.type === 'checkbox' || el.type === 'radio') el.checked = !!data[fid];
+      else el.value = data[fid];
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  }
+  // 实时保存：边打字边存草稿（防止刷新丢失）
+  let _draftTimer = null;
+  function _autoSaveDraft() {
+    if (!activeId || REFRESH_ON_ENTER.has(activeId)) return;
+    clearTimeout(_draftTimer);
+    _draftTimer = setTimeout(() => saveDraft(activeId, body), 400);
+  }
+  body.addEventListener('input', _autoSaveDraft);
+  body.addEventListener('change', _autoSaveDraft);
+  // 刷新/关闭瞬间立即落盘，防止最后 400ms 内的输入丢失
+  window.addEventListener('pagehide', () => { if (activeId && !REFRESH_ON_ENTER.has(activeId)) saveDraft(activeId, body); });
+
   function go(id) {
     const m = ECOM.modules.find(x => x.id === id);
     if (!m) return;
+    // 离开当前板块前：先把表单草稿写入 localStorage（刷新后还能找回）
+    if (activeId && !REFRESH_ON_ENTER.has(activeId)) saveDraft(activeId, body);
     // 收起当前板块：把 body 内的节点移入其缓存容器（保留 DOM、输入与事件）
     if (activeId) {
       const holder = viewCache[activeId] || (viewCache[activeId] = document.createElement('div'));
@@ -63,6 +105,8 @@
     } else {
       body.innerHTML = '';
       try { m.render(body); } catch (e) { body.innerHTML = '<div class="card">模块加载失败：' + (e.message || e) + '</div>'; console.error(e); }
+      // 刷新后首次进入：回填上次保存的草稿
+      if (!REFRESH_ON_ENTER.has(id)) restoreDraft(id, body);
     }
     nav.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.id === id));
     bottomNav.querySelectorAll('.bn-item').forEach(b => b.classList.toggle('active', b.dataset.id === id));
