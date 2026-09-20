@@ -65,6 +65,7 @@
         await ECOM.ui.run(e.target, async () => {
           const text = await ECOM.llm([ECOM.msg('system', '你是电商大促活动策划，擅长节奏设计与优惠机制。'), ECOM.msg('user', prompt)], { temperature: 0.6 });
           card.set(text, '活动策略.md');
+          ECOM.attachReport('campaign', '活动策略', text, prod);
         });
       });
       function v(s){ return root.querySelector(s).value.trim(); }
@@ -136,6 +137,7 @@ ${kw || '（请合理推断）'}
         await ECOM.ui.run(e.target, async () => {
           const text = await ECOM.llm([ECOM.msg('system', '你是电商广告投放优化师，数据驱动、结构清晰。'), ECOM.msg('user', prompt)], { temperature: 0.6 });
           card.set(text, '广告策略.md');
+          ECOM.attachReport('ads', '广告策略', text, prod);
         });
       });
       function v(s){ return root.querySelector(s).value.trim(); }

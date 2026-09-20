@@ -68,6 +68,7 @@
       root.querySelector('#i_build').addEventListener('click', () => {
         lastPrompt = buildLocal();
         card.set(lastPrompt, 'image_prompt.md');
+        ECOM.attachReport('image', '做图 Prompt', lastPrompt, v('#i_name'));
       });
 
       root.querySelector('#i_ai').addEventListener('click', async (e) => {
@@ -80,6 +81,7 @@ ${base}`;
           const merged = `# 图像生成 Prompt（AI 润色）\n\n## 英文 Prompt\n${text.trim()}\n\n## 推荐参数\n- 尺寸：${SIZES[v('#i_size')] || '1024x1024'}\n- 负向词：text, watermark, low quality, deformed`;
           card.set(merged, 'image_prompt.md');
           lastPrompt = merged;
+          ECOM.attachReport('image', '做图 Prompt', merged, v('#i_name'));
         });
       });
 

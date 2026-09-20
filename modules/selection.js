@@ -254,6 +254,7 @@ ${capLine}
           ECOM.msg('user', prompt)
         ], { temperature: 0.6 });
         card.set(text, '选品建议.md');
+        ECOM.attachReport('selection', 'AI 选品建议', text, cat);
       });
     });
 

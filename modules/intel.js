@@ -81,8 +81,14 @@
         const tier = mode === 'word'
           ? root.querySelector('#iw_tier').value
           : root.querySelector('#iw_tier2').value;
-        ECOM.setBrief({ name, platform: plat, tier, feats: ['需求洞察报告已生成'], kind: 'insight' });
-        ECOM.ui.toast('已存入选品库：' + name);
+        const report = (card.raw && card.raw()) ? card.raw().trim() : '';
+        const prev = ECOM.getBrief() || {};
+        const reports = Object.assign({}, prev.reports || {});
+        if (report) reports.insight = { title: '需求洞察报告', content: report };
+        const feats = new Set(Array.isArray(prev.feats) ? prev.feats : []);
+        if (report) feats.add('需求洞察报告');
+        ECOM.setBrief({ name, platform: plat, tier, reports, kind: 'insight', feats: [...feats] });
+        ECOM.ui.toast(report ? ('已存入选品库（含洞察报告）：' + name) : ('已存入选品库：' + name));
       });
       card.querySelector('.btn-row').appendChild(saveBtn);
 
@@ -151,6 +157,8 @@ ${raw}
             ECOM.msg('user', prompt)
           ], { temperature: 0.7 });
           card.set(text, (name ? name + ' - ' : '') + '需求洞察.md');
+          const at = ECOM.attachReport('insight', '需求洞察报告', text, name);
+          if (at) ECOM.ui.toast('已归入「' + at.name + '」资料库');
         });
       });
       ECOM.applyBrief(root);
@@ -193,14 +201,21 @@ ${raw}
       saveBtn.addEventListener('click', () => {
         const name = root.querySelector('#cc_name').value.trim();
         if (!name) { ECOM.ui.toast('请先填写「方向名称」'); root.querySelector('#cc_name').focus(); return; }
+        const report = (card.raw && card.raw()) ? card.raw().trim() : '';
+        const prev = ECOM.getBrief() || {};
+        const reports = Object.assign({}, prev.reports || {});
+        if (report) reports.comete = { title: '竞品分析报告', content: report };
+        const feats = new Set(Array.isArray(prev.feats) ? prev.feats : []);
+        if (report) feats.add('竞品分析');
         ECOM.setBrief({
           name,
           platform: root.querySelector('#cc_plat').value,
           tier: root.querySelector('#cc_tier').value,
-          feats: ['竞品分析报告已生成'],
-          kind: 'compete'
+          reports,
+          kind: 'compete',
+          feats: [...feats]
         });
-        ECOM.ui.toast('已存入选品库：' + name);
+        ECOM.ui.toast(report ? ('已存入选品库（含竞品报告）：' + name) : ('已存入选品库：' + name));
       });
       card.querySelector('.btn-row').appendChild(saveBtn);
 
@@ -235,6 +250,8 @@ ${input}
             ECOM.msg('user', prompt)
           ], { temperature: 0.6 });
           card.set(text, (name ? name + ' - ' : '') + '竞品分析.md');
+          const at = ECOM.attachReport('compete', '竞品分析报告', text, name);
+          if (at) ECOM.ui.toast('已归入「' + at.name + '」资料库');
         });
       });
       ECOM.applyBrief(root);

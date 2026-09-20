@@ -18,6 +18,30 @@
     ['入库时间', b => fmt(b.createdAt)]
   ];
 
+  const REPORT_LABELS = {
+    insight: '需求洞察报告', compete: '竞品分析报告', selection: 'AI 选品建议',
+    title: '标题生成', copy: '卖点文案', detail: '详情页方案',
+    campaign: '活动策略', ads: '广告策略', image: '做图 Prompt'
+  };
+  function reportEntry(type, val) {
+    if (val && typeof val === 'object') return { title: val.title || REPORT_LABELS[type] || type, content: val.content || '' };
+    return { title: REPORT_LABELS[type] || type, content: val || '' };
+  }
+  function reportCount(b) {
+    const r = b.reports || {};
+    return Object.keys(r).filter(k => { const c = reportEntry(k, r[k]).content; return c && String(c).trim(); }).length;
+  }
+  function reportsHtml(b) {
+    const r = b.reports || {};
+    let h = '';
+    Object.keys(r).forEach(type => {
+      const e = reportEntry(type, r[type]);
+      if (!e.content || !String(e.content).trim()) return;
+      h += '<div class="lib-rep-sec"><div class="lib-rep-head"><span>' + e.title + '</span><button class="secondary-btn lib-rep-copy" data-type="' + type + '" data-id="' + b.id + '">复制</button></div><div class="md-body">' + ECOM.mdToHtml(e.content) + '</div></div>';
+    });
+    return h;
+  }
+
   ECOM.register({
     id: 'library',
     name: '我的选品库',
@@ -27,24 +51,29 @@
     render(root) {
       function goPipeline() { const n = document.querySelector('.nav-item[data-id="pipeline"]'); if (n) n.click(); }
       const selected = new Set();
+      const expanded = new Set();
 
       function renderList() {
         const list = ECOM.briefLib.list();
         const active = ECOM.getBrief();
         if (!list.length) {
-          box.innerHTML = '<p class="hint" style="margin:0">选品库还是空的。在「选品分析 → 💰 资金选品」测算并保存简报后，方向会自动进到这里；也可点上方「保存当前简报」手动入库。</p>';
+          box.innerHTML = '<p class="hint" style="margin:0">选品库还是空的。在「选品分析 → 💰 资金选品」测算并保存，或从「需求洞察 / 竞品分析」生成报告并保存后，方向会进到这里；带洞察报告的卡片可点「展开洞察」查看。</p>';
           updateCmpBtn();
           return;
         }
         box.innerHTML = list.map(b => {
           const isActive = active && active.id === b.id;
           const feats = Array.isArray(b.feats) ? b.feats.join('、') : (b.feats || '');
-          return `<div class="lib-card${isActive ? ' active' : ''}">
+          const r = b.reports || {};
+          const repCount = reportCount(b);
+          const hasReports = repCount > 0;
+          const open = expanded.has(b.id);
+          return `<div class="lib-card${isActive ? ' active' : ''}${hasReports ? ' has-reports' : ''}" data-id="${b.id}">
             <div class="lib-main">
               <div class="lib-title">${b.name || '未命名'}${isActive ? ' <span class="lib-flag">当前</span>' : ''}</div>
               <div class="lib-meta">${b.platform || '平台未填'} · ${b.tier || ''} · ${b.capital ? ('¥' + Number(b.capital).toLocaleString()) : '资金未填'}</div>
               <div class="lib-sub">客单价 ${b.price ? '¥' + b.price : '-'} · 人群 ${b.audience || '-'}${feats ? ' · 卖点 ' + feats : ''}</div>
-              <div class="lib-time">入库 ${fmt(b.createdAt)}</div>
+              <div class="lib-time">入库 ${fmt(b.createdAt)}${hasReports ? ` · <button class="lib-expand" data-id="${b.id}">${open ? '收起资料 ▴' : '展开资料 ▾'}</button><span class="lib-rep-badge">📋 ${repCount} 份资料</span>` : ''}</div>
             </div>
             <div class="lib-actions">
               <label class="lib-cmp-wrap"><input type="checkbox" class="lib-cmp" data-id="${b.id}" ${selected.has(b.id) ? 'checked' : ''}> 对比</label>
@@ -52,6 +81,7 @@
               <button class="secondary-btn lib-run" data-id="${b.id}">去生成</button>
               <button class="lib-del" data-id="${b.id}" title="删除">✕</button>
             </div>
+            ${hasReports ? `<div class="lib-detail" data-id="${b.id}" ${open ? '' : 'hidden'}>${reportsHtml(b)}</div>` : ''}
           </div>`;
         }).join('');
         box.querySelectorAll('.lib-set').forEach(btn => btn.addEventListener('click', () => {
@@ -76,6 +106,18 @@
         box.querySelectorAll('.lib-cmp').forEach(cb => cb.addEventListener('change', () => {
           if (cb.checked) selected.add(cb.dataset.id); else selected.delete(cb.dataset.id);
           updateCmpBtn();
+        }));
+        box.querySelectorAll('.lib-expand').forEach(btn => btn.addEventListener('click', e => {
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          if (expanded.has(id)) expanded.delete(id); else expanded.add(id);
+          renderList();
+        }));
+        box.querySelectorAll('.lib-rep-copy').forEach(btn => btn.addEventListener('click', e => {
+          e.stopPropagation();
+          const b = ECOM.briefLib.get(btn.dataset.id);
+          const e0 = b && b.reports ? reportEntry(btn.dataset.type, b.reports[btn.dataset.type]) : null;
+          if (e0 && e0.content) ECOM.ui.copy(e0.content);
         }));
         updateCmpBtn();
       }
