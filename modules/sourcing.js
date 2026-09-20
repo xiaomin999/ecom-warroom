@@ -60,6 +60,11 @@
         tabs.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.dataset.t === t));
         try { ECOM.store.set({ sourcingTab: t }); } catch (e) {}
       }
+      // 强制重渲染某个已生成的子 tab（用于跨子 tab 数据同步后刷新视图）
+      function refreshTab(t) {
+        if (!holders[t]) return;
+        ({ guide: renderGuide, check: renderCheck, dropship: renderDropship, compare: renderCompare }[t])(holders[t]);
+      }
       tabs.addEventListener('click', e => {
         const b = e.target.closest('.tab'); if (!b) return;
         showTab(b.dataset.t);
@@ -193,9 +198,16 @@
 
       /* ============ 子 tab 2：货源体检 ============ */
       function renderCheck(h) {
+        const cmpRows = ECOM.store.get().srcCompare || [];
+        const cmpNames = cmpRows.filter(r => (r.name || '').trim()).map(r => `<option value="${escapeAttr(r.name.trim())}">${escapeAttr(r.name.trim())}</option>`).join('');
         h.innerHTML = `
           <div class="card">
-            <p style="margin-top:0"><b>🩺 货源体检打分卡</b> · 把供应商信息填进去，自动算靠谱度；也可贴店铺描述让 AI 体检。</p>
+            <p style="margin-top:0"><b>🩺 货源体检打分卡</b> · 把供应商信息填进去，自动算靠谱度；也可贴店铺描述让 AI 体检。填好「供应商名称」后，可一键把<b>验厂/牛头标/代发</b>等同步到「供应商对比」，避免重复录入。</p>
+            <div class="row" style="flex-wrap:wrap;gap:14px">
+              <div class="field" style="margin:0;flex:1;min-width:170px"><label>供应商名称</label><input type="text" id="c_name" placeholder="如：XX源头工厂 / 店铺名"></div>
+              <div class="field" style="margin:0;flex:1;min-width:200px"><label>店铺/商品链接(可选)</label><input type="text" id="c_link" placeholder="https://..."></div>
+              <div class="field" style="margin:0;width:210px"><label>从「供应商对比」载入</label><select id="c_load"><option value="">— 选择回填体检卡 —</option>${cmpNames}</select></div>
+            </div>
             <div class="row" style="flex-wrap:wrap;gap:14px">
               <div class="field" style="margin:0;width:150px"><label>店铺评分(1-5)</label><input type="number" id="c_score" min="1" max="5" step="0.1" value="4.5"></div>
               <div class="field" style="margin:0;width:130px"><label>经营年限(年)</label><input type="number" id="c_years" min="0" step="1" value="3"></div>
@@ -212,11 +224,75 @@
             <div class="row" style="margin-top:14px;gap:8px">
               <button class="primary-btn" id="c_calc">🩺 计算靠谱度</button>
               <button class="secondary-btn" id="c_ai">🤖 AI 体检(贴描述)</button>
+              <button class="secondary-btn" id="c_to_cmp">📊 存到供应商对比</button>
             </div>
+            <p class="hint" style="margin:8px 0 0">「存到供应商对比」会按名称创建或更新一行，自动带入：评分、经营年限、验厂/牛头标、是否代发；对比表里已填的拿货价/起批量等不会被覆盖。也可从上方下拉把已存供应商回填到体检卡。</p>
           </div>
           <div id="c_out"></div>`;
         h.querySelector('#c_calc').addEventListener('click', () => calcCheck(h));
         h.querySelector('#c_ai').addEventListener('click', () => aiCheck(h));
+        h.querySelector('#c_to_cmp').addEventListener('click', () => syncCheckToCompare(h));
+        h.querySelector('#c_load').addEventListener('change', e => { if (e.target.value) loadCompareIntoCheck(h, e.target.value); });
+        // 聚焦时重建下拉，确保新增到「供应商对比」的供应商也能立即回填（子 tab 有缓存，避免选项过期）
+        h.querySelector('#c_load').addEventListener('focus', () => {
+          const cur = h.querySelector('#c_load').value;
+          const opts = (ECOM.store.get().srcCompare || []).filter(r => (r.name || '').trim())
+            .map(r => `<option value="${escapeAttr(r.name.trim())}">${escapeAttr(r.name.trim())}</option>`).join('');
+          h.querySelector('#c_load').innerHTML = '<option value="">— 选择回填体检卡 —</option>' + opts;
+          h.querySelector('#c_load').value = cur;
+        });
+      }
+
+      // 体检卡 → 供应商对比：按名称创建/更新，带入验厂/牛头标/代发/评分/年限
+      function syncCheckToCompare(h) {
+        const name = (h.querySelector('#c_name').value || '').trim();
+        if (!name) { ECOM.ui.toast('请先填写「供应商名称」再同步'); h.querySelector('#c_name').focus(); return; }
+        const link = (h.querySelector('#c_link').value || '').trim();
+        const score = (h.querySelector('#c_score').value || '').trim();
+        const years = (h.querySelector('#c_years').value || '').trim();
+        const df = h.querySelector('#c_df').checked ? '是' : '否';
+        const parts = [];
+        if (h.querySelector('#c_verify').checked) parts.push('深度验厂');
+        if (h.querySelector('#c_cheng').checked) parts.push('诚企/实力商家');
+        if (h.querySelector('#c_niu').checked) parts.push('牛头标');
+        if (h.querySelector('#c_qc').checked) parts.push('质检/授权');
+        const verify = parts.join(' / ');
+        const ret = (h.querySelector('#c_ret').value || '').trim();
+        let rows = ECOM.store.get().srcCompare || [];
+        const idx = rows.findIndex(r => (r.name || '').trim() && (r.name || '').trim().toLowerCase() === name.toLowerCase());
+        if (idx >= 0) {
+          const t = rows[idx];
+          t.link = link || t.link;
+          if (score) t.score = score;
+          if (years) t.years = years;
+          t.dropship = df;
+          t.verify = verify || t.verify;
+          if (ret) t.ret = '退货/差评率 ' + ret + '%';
+        } else {
+          rows.push({ name: name, link: link, price: '', moq: '', addr: '', score: score, dropship: df, sample: '', cycle: '', ship: '', years: years, verify: verify, terms: '', ret: ret ? ('退货/差评率 ' + ret + '%') : '', note: '' });
+        }
+        ECOM.store.set({ srcCompare: rows });
+        ECOM.ui.toast((idx >= 0 ? '已更新供应商对比：' : '已新增到供应商对比：') + name + '（验厂/牛头标/代发已带入）');
+        refreshTab('compare');
+        showTab('compare');
+      }
+
+      // 供应商对比 → 体检卡：把已存供应商的字段回填到体检卡
+      function loadCompareIntoCheck(h, name) {
+        const rows = ECOM.store.get().srcCompare || [];
+        const r = rows.find(x => (x.name || '').trim().toLowerCase() === name.trim().toLowerCase());
+        if (!r) return;
+        h.querySelector('#c_name').value = r.name || '';
+        h.querySelector('#c_link').value = r.link || '';
+        if (r.score) h.querySelector('#c_score').value = r.score;
+        if (r.years) h.querySelector('#c_years').value = r.years;
+        h.querySelector('#c_df').checked = (r.dropship === '是');
+        const v = (r.verify || '');
+        h.querySelector('#c_verify').checked = v.includes('验厂');
+        h.querySelector('#c_niu').checked = v.includes('牛头');
+        h.querySelector('#c_cheng').checked = v.includes('诚企') || v.includes('实力');
+        h.querySelector('#c_qc').checked = v.includes('质检') || v.includes('授权');
+        ECOM.ui.toast('已从供应商对比载入：' + name);
       }
 
       function calcCheck(h) {
