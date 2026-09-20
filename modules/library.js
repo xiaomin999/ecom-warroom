@@ -18,27 +18,42 @@
     ['入库时间', b => fmt(b.createdAt)]
   ];
 
-  const REPORT_LABELS = {
+  const MAT_LABELS = {
     insight: '需求洞察报告', compete: '竞品分析报告', selection: 'AI 选品建议',
     title: '标题生成', copy: '卖点文案', detail: '详情页方案',
-    campaign: '活动策略', ads: '广告策略', image: '做图 Prompt'
+    campaign: '活动策略', ads: '广告策略', image: '做图 Prompt',
+    capital: '资金选品方案', capital_ai: 'AI 资金选品方案', alloc: '资金分配方案',
+    pipeline: '选品作战方案全套', find: '找货方案', find_live: '找货方案（联网）',
+    score: '选品打分卡', sourcing_compare: '供应商对比'
   };
-  function reportEntry(type, val) {
-    if (val && typeof val === 'object') return { title: val.title || REPORT_LABELS[type] || type, content: val.content || '' };
-    return { title: REPORT_LABELS[type] || type, content: val || '' };
+  function entryOf(map, type) {
+    const v = map && map[type];
+    if (v && typeof v === 'object') return { title: v.title || MAT_LABELS[type] || type, content: v.content || '' };
+    return { title: MAT_LABELS[type] || type, content: v || '' };
   }
-  function reportCount(b) {
-    const r = b.reports || {};
-    return Object.keys(r).filter(k => { const c = reportEntry(k, r[k]).content; return c && String(c).trim(); }).length;
+  function materialCount(b) {
+    const cnt = m => m ? Object.keys(m).filter(k => { const e = entryOf(m, k); return e.content && String(e.content).trim(); }).length : 0;
+    return cnt(b.reports) + cnt(b.forms);
   }
-  function reportsHtml(b) {
-    const r = b.reports || {};
+  function materialsHtml(b) {
+    const render = (kind, map) => {
+      if (!map) return '';
+      let h = '';
+      Object.keys(map).forEach(type => {
+        const e = entryOf(map, type);
+        if (!e.content || !String(e.content).trim()) return;
+        h += '<div class="lib-rep-sec"><div class="lib-rep-head"><span>' + e.title + '</span>' +
+          '<button class="secondary-btn lib-mat-copy" data-kind="' + kind + '" data-type="' + type + '" data-id="' + b.id + '">复制</button></div>' +
+          '<div class="md-body">' + ECOM.mdToHtml(e.content) + '</div></div>';
+      });
+      return h;
+    };
+    const rs = render('reports', b.reports);
+    const fs = render('forms', b.forms);
+    if (!rs && !fs) return '';
     let h = '';
-    Object.keys(r).forEach(type => {
-      const e = reportEntry(type, r[type]);
-      if (!e.content || !String(e.content).trim()) return;
-      h += '<div class="lib-rep-sec"><div class="lib-rep-head"><span>' + e.title + '</span><button class="secondary-btn lib-rep-copy" data-type="' + type + '" data-id="' + b.id + '">复制</button></div><div class="md-body">' + ECOM.mdToHtml(e.content) + '</div></div>';
-    });
+    if (rs) h += '<div class="lib-mat-group"><div class="lib-mat-gtitle">🤖 AI 生成内容</div>' + rs + '</div>';
+    if (fs) h += '<div class="lib-mat-group"><div class="lib-mat-gtitle">📝 我填写 / 测算的内容</div>' + fs + '</div>';
     return h;
   }
 
@@ -57,15 +72,14 @@
         const list = ECOM.briefLib.list();
         const active = ECOM.getBrief();
         if (!list.length) {
-          box.innerHTML = '<p class="hint" style="margin:0">选品库还是空的。在「选品分析 → 💰 资金选品」测算并保存，或从「需求洞察 / 竞品分析」生成报告并保存后，方向会进到这里；带洞察报告的卡片可点「展开洞察」查看。</p>';
+          box.innerHTML = '<p class="hint" style="margin:0">选品库还是空的。在「选品分析 → 💰 资金选品」测算并保存，或从「需求洞察 / 竞品分析 / 标题 / 文案 / 详情页 / 做图 / 策略 / 找货 / 供应商对比」生成或保存后，方向会进到这里；带资料的卡片可点「展开资料」查看全部 AI 生成内容与填写内容。</p>';
           updateCmpBtn();
           return;
         }
         box.innerHTML = list.map(b => {
           const isActive = active && active.id === b.id;
           const feats = Array.isArray(b.feats) ? b.feats.join('、') : (b.feats || '');
-          const r = b.reports || {};
-          const repCount = reportCount(b);
+          const repCount = materialCount(b);
           const hasReports = repCount > 0;
           const open = expanded.has(b.id);
           return `<div class="lib-card${isActive ? ' active' : ''}${hasReports ? ' has-reports' : ''}" data-id="${b.id}">
@@ -81,7 +95,7 @@
               <button class="secondary-btn lib-run" data-id="${b.id}">去生成</button>
               <button class="lib-del" data-id="${b.id}" title="删除">✕</button>
             </div>
-            ${hasReports ? `<div class="lib-detail" data-id="${b.id}" ${open ? '' : 'hidden'}>${reportsHtml(b)}</div>` : ''}
+            ${hasReports ? `<div class="lib-detail" data-id="${b.id}" ${open ? '' : 'hidden'}>${materialsHtml(b)}</div>` : ''}
           </div>`;
         }).join('');
         box.querySelectorAll('.lib-set').forEach(btn => btn.addEventListener('click', () => {
@@ -113,10 +127,12 @@
           if (expanded.has(id)) expanded.delete(id); else expanded.add(id);
           renderList();
         }));
-        box.querySelectorAll('.lib-rep-copy').forEach(btn => btn.addEventListener('click', e => {
+        box.querySelectorAll('.lib-mat-copy').forEach(btn => btn.addEventListener('click', e => {
           e.stopPropagation();
           const b = ECOM.briefLib.get(btn.dataset.id);
-          const e0 = b && b.reports ? reportEntry(btn.dataset.type, b.reports[btn.dataset.type]) : null;
+          if (!b) return;
+          const map = btn.dataset.kind === 'forms' ? b.forms : b.reports;
+          const e0 = map ? entryOf(map, btn.dataset.type) : null;
           if (e0 && e0.content) ECOM.ui.copy(e0.content);
         }));
         updateCmpBtn();

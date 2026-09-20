@@ -116,6 +116,7 @@
             }
           }
           card.set(assemble(b, parts), '选品作战方案全套.md');
+          ECOM.attachReport('pipeline', '选品作战方案全套', assemble(b, parts), b.name);
         });
       });
     }

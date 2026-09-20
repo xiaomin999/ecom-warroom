@@ -65,7 +65,8 @@
         await ECOM.ui.run(e.target, async () => {
           const text = await ECOM.llm([ECOM.msg('system', '你是电商大促活动策划，擅长节奏设计与优惠机制。'), ECOM.msg('user', prompt)], { temperature: 0.6 });
           card.set(text, '活动策略.md');
-          ECOM.attachReport('campaign', '活动策略', text, prod);
+          const input = `活动类型：${type}\n平台：${plat}\n商品/品类：${prod}\n核心目标：${goal}\n周期/预算：${budget || '—'}\n特殊要求：${req || '—'}`;
+          ECOM.attachBoth('campaign', { aiTitle: '活动策略', ai: text, formTitle: '活动策略（输入）', form: input, name: prod });
         });
       });
       function v(s){ return root.querySelector(s).value.trim(); }
@@ -137,7 +138,8 @@ ${kw || '（请合理推断）'}
         await ECOM.ui.run(e.target, async () => {
           const text = await ECOM.llm([ECOM.msg('system', '你是电商广告投放优化师，数据驱动、结构清晰。'), ECOM.msg('user', prompt)], { temperature: 0.6 });
           card.set(text, '广告策略.md');
-          ECOM.attachReport('ads', '广告策略', text, prod);
+          const input = `广告渠道：${chan}\n商品/落地页：${prod}\n投放目标：${goal}\n日预算：${budget || '—'}\n核心卖点/关键词方向：${kw || '—'}`;
+          ECOM.attachBoth('ads', { aiTitle: '广告策略', ai: text, formTitle: '广告策略（输入）', form: input, name: prod });
         });
       });
       function v(s){ return root.querySelector(s).value.trim(); }

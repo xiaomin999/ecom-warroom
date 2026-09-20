@@ -65,10 +65,15 @@
         return `# 图像生成 Prompt\n\n## 英文 Prompt（直接喂给 通义万相 / DALL·E / Stable Diffusion）\n${en}\n\n## 中文说明\n${zh}\n\n## 推荐参数\n- 尺寸：${SIZES[v('#i_size')] || '1024x1024'}\n- 步数：30–50（SD 类）\n- 负向词：text, watermark, low quality, deformed, extra limbs`;
       }
 
+      function imgName() { return v('#i_name') || (ECOM.getBrief() && ECOM.getBrief().name) || '做图方案'; }
+      function imgInput() {
+        return `商品/主题：${v('#i_name') || '—'}\n图片风格：${v('#i_style')}\n平台尺寸：${v('#i_size')}\n调性/背景：${v('#i_tone') || '—'}\n突出卖点：${v('#i_feat') || '—'}`;
+      }
+
       root.querySelector('#i_build').addEventListener('click', () => {
         lastPrompt = buildLocal();
         card.set(lastPrompt, 'image_prompt.md');
-        ECOM.attachReport('image', '做图 Prompt', lastPrompt, v('#i_name'));
+        ECOM.attachBoth('image', { aiTitle: '做图 Prompt', ai: lastPrompt, formTitle: '做图方案（输入）', form: imgInput(), name: imgName() });
       });
 
       root.querySelector('#i_ai').addEventListener('click', async (e) => {
@@ -81,7 +86,7 @@ ${base}`;
           const merged = `# 图像生成 Prompt（AI 润色）\n\n## 英文 Prompt\n${text.trim()}\n\n## 推荐参数\n- 尺寸：${SIZES[v('#i_size')] || '1024x1024'}\n- 负向词：text, watermark, low quality, deformed`;
           card.set(merged, 'image_prompt.md');
           lastPrompt = merged;
-          ECOM.attachReport('image', '做图 Prompt', merged, v('#i_name'));
+          ECOM.attachBoth('image', { aiTitle: '做图 Prompt', ai: merged, formTitle: '做图方案（输入）', form: imgInput(), name: imgName() });
         });
       });
 
@@ -114,6 +119,7 @@ ${base}`;
             '<div style="margin-top:10px;color:#cbd5e1;font-size:13px">Prompt：' + en.replace(/</g, '&lt;') + '</div>';
           resultEl.dataset.raw = lastPrompt;
           resultEl.dataset.file = 'image_prompt.md';
+          ECOM.attachBoth('image', { aiTitle: '做图 Prompt', ai: lastPrompt, formTitle: '做图方案（输入）', form: imgInput(), name: imgName() });
         });
       });
 

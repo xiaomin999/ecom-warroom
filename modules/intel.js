@@ -158,6 +158,10 @@ ${raw}
           ], { temperature: 0.7 });
           card.set(text, (name ? name + ' - ' : '') + '需求洞察.md');
           const at = ECOM.attachReport('insight', '需求洞察报告', text, name);
+          const input = mode === 'word'
+            ? `场景词/品类：${word}\n目标平台：${plat}\n可投资金档：${tier}`
+            : `真实素材：${raw}\n目标平台：${plat}\n可投资金档：${tier}`;
+          if (name) ECOM.attachForm('insight', '需求洞察（输入）', input, name);
           if (at) ECOM.ui.toast('已归入「' + at.name + '」资料库');
         });
       });
@@ -251,6 +255,8 @@ ${input}
           ], { temperature: 0.6 });
           card.set(text, (name ? name + ' - ' : '') + '竞品分析.md');
           const at = ECOM.attachReport('compete', '竞品分析报告', text, name);
+          const cmpInputSummary = `竞品信息：${input}\n目标平台：${plat}\n可投资金档：${tier}`;
+          if (name) ECOM.attachForm('compete', '竞品分析（输入）', cmpInputSummary, name);
           if (at) ECOM.ui.toast('已归入「' + at.name + '」资料库');
         });
       });

@@ -50,7 +50,8 @@ ${kw ? '必须埋入的关键词：' + kw : ''}
         await ECOM.ui.run(e.target, async () => {
           const text = await ECOM.llm([ECOM.msg('system', '你是电商标题优化专家，擅长不同平台的关键词布局。'), ECOM.msg('user', prompt)], { temperature: 0.8 });
           card.set(text, '标题方案.md');
-          ECOM.attachReport('title', '标题生成', text, name);
+          const input = `商品名/核心词：${name}\n目标平台：${plat}\n核心卖点：${feat || '—'}\n必埋关键词：${kw || '—'}\n生成条数：${num}`;
+          ECOM.attachBoth('title', { aiTitle: '标题生成', ai: text, formTitle: '标题生成（输入）', form: input, name: name });
         });
       });
       function v(s){ return root.querySelector(s).value.trim(); }
@@ -112,7 +113,8 @@ ${feat || '（请合理推断）'}
         await ECOM.ui.run(e.target, async () => {
           const text = await ECOM.llm([ECOM.msg('system', '你是电商转化文案专家，擅长卖点提炼与合规表达。'), ECOM.msg('user', prompt)], { temperature: 0.7 });
           card.set(text, '卖点文案.md');
-          ECOM.attachReport('copy', '卖点文案', text, name);
+          const input = `商品名：${name}\n目标平台：${plat}\n核心卖点：${feat || '—'}\n文案调性：${tone}\n目标人群：${aud || '—'}`;
+          ECOM.attachBoth('copy', { aiTitle: '卖点文案', ai: text, formTitle: '卖点文案（输入）', form: input, name: name });
         });
       });
       function v(s){ return root.querySelector(s).value.trim(); }
@@ -170,7 +172,8 @@ ${feat || '（请合理推断）'}
         await ECOM.ui.run(e.target, async () => {
           const text = await ECOM.llm([ECOM.msg('system', '你是电商详情页策划，擅长转化路径与视觉叙事。'), ECOM.msg('user', prompt)], { temperature: 0.6 });
           card.set(text, '详情页方案.md');
-          ECOM.attachReport('detail', '详情页方案', text, name);
+          const input = `商品名：${name}\n目标平台/人群：${aud || '—'}\n核心卖点：${feat || '—'}\n特殊要求：${req || '—'}`;
+          ECOM.attachBoth('detail', { aiTitle: '详情页方案', ai: text, formTitle: '详情页方案（输入）', form: input, name: name });
         });
       });
       function v(s){ return root.querySelector(s).value.trim(); }

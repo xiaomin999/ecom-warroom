@@ -152,6 +152,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--brand);b
 .lib-detail .md-body th{background:var(--bg)}
 .lib-detail .md-body ul,.lib-detail .md-body ol{padding-left:20px;margin:6px 0}
 .lib-detail .md-body code{background:var(--bg);padding:1px 5px;border-radius:4px}
+.lib-mat-group{margin-top:14px;padding-top:6px}
+.lib-mat-group + .lib-mat-group{border-top:1px dashed var(--line);margin-top:12px}
+.lib-mat-gtitle{font-weight:800;font-size:13px;color:var(--ink-3);letter-spacing:.5px;margin:0 0 8px;display:flex;align-items:center;gap:6px}
 
 /* 选品对比表（弹窗内） */
 .modal-x{border:none;background:transparent;color:var(--ink-3);font-size:20px;cursor:pointer;line-height:1}

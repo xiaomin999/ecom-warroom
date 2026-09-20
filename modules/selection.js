@@ -254,7 +254,8 @@ ${capLine}
           ECOM.msg('user', prompt)
         ], { temperature: 0.6 });
         card.set(text, '选品建议.md');
-        ECOM.attachReport('selection', 'AI 选品建议', text, cat);
+        const input = `目标平台：${plat}\n主推品类：${cat}\n客单价区间：${price || '不限'}\n建议数量：${num}\n自身供应链/优势：${supply || '—'}\n目标人群：${aud || '—'}\n已知市场数据/竞品观察：${data || '—'}\n可投资金：¥${cap.toLocaleString()}`;
+        ECOM.attachBoth('selection', { aiTitle: 'AI 选品建议', ai: text, formTitle: 'AI 选品建议（输入）', form: input, name: cat });
       });
     });
 
@@ -276,6 +277,9 @@ ${capLine}
         <div class="score-ring" id="ring"><span id="ringNum">0</span></div>
         <h3 id="scoreLabel" style="margin-top:12px">—</h3>
         <p class="hint" id="scoreAdv" style="margin:6px 0 0">填左侧指标看建议</p>
+      </div>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="secondary-btn" id="sc_save">💾 存为资料（打分卡）</button>
       </div>`;
     const rowsBox = panel.querySelector('#scoreRows');
     metrics.forEach(m => {
@@ -316,6 +320,31 @@ ${capLine}
     }
     rowsBox.addEventListener('input', recalc);
     recalc();
+
+    function currentScore() {
+      let total = 0;
+      metrics.forEach(m => {
+        const r = panel.querySelector('#r_' + m.k);
+        let v = +r.value; if (m.invert) v = 100 - v;
+        total += v * m.w;
+      });
+      total = Math.round(total / 100);
+      return { total, label: panel.querySelector('#scoreLabel').textContent, adv: panel.querySelector('#scoreAdv').textContent };
+    }
+    panel.querySelector('#sc_save').addEventListener('click', () => {
+      const s = currentScore();
+      const cap = ECOM._capital || 0;
+      const curName = (ECOM.getBrief() && ECOM.getBrief().name) || '';
+      const name = curName || '选品打分卡';
+      const lines = ['## 选品打分卡', '', '**综合得分：' + s.total + '** · ' + s.label, '', '> ' + s.adv, '', '### 各维度评分（加权）'];
+      metrics.forEach(m => {
+        const v = panel.querySelector('#r_' + m.k).value;
+        lines.push('- ' + m.name + '：' + v + '（权重 ' + m.w + '%）');
+      });
+      if (cap > 0) lines.push('', '可投资金：¥' + cap.toLocaleString());
+      ECOM.attachForm('score', '选品打分卡', lines.join('\n'), name);
+      ECOM.ui.toast('打分卡已存为资料（' + name + '）');
+    });
   }
 
   function renderCapital(panel) {
@@ -411,23 +440,27 @@ ${capLine}
       const m = compute();
       if (m.cap <= 0) { ECOM.ui.toast('请填写可投资金'); return; }
       if (m.cost <= 0 || m.price <= 0) { ECOM.ui.toast('请填写单件采购成本与客单价'); return; }
-      card.set(buildMd(m), '资金选品方案.md');
-      const name = (panel.querySelector('#c_name').value || '').trim();
-      if (name) {
-        const feats = (panel.querySelector('#cap_feat').value || '').trim();
-        const audience = (panel.querySelector('#cap_aud').value || '').trim();
-        ECOM.setBrief({
-          name,
-          cost: m.cost,
-          price: m.price,
-          platform: panel.querySelector('#c_plat').value,
-          capital: m.cap,
-          tier: m.t.key + '档·' + m.t.name,
-          feats: feats ? feats.split('\n').map(s => s.trim()).filter(Boolean) : '',
-          audience
-        });
-        ECOM.ui.toast('已存为选品简报，可前往标题/文案/详情页/做图');
-      }
+      const md = buildMd(m);
+      card.set(md, '资金选品方案.md');
+      const name = (panel.querySelector('#c_name').value || '').trim()
+        || (ECOM.getBrief() && ECOM.getBrief().name)
+        || ('资金选品方案');
+      const feats = (panel.querySelector('#cap_feat').value || '').trim();
+      const audience = (panel.querySelector('#cap_aud').value || '').trim();
+      ECOM.setBrief({
+        name,
+        cost: m.cost,
+        price: m.price,
+        platform: panel.querySelector('#c_plat').value,
+        capital: m.cap,
+        tier: m.t.key + '档·' + m.t.name,
+        feats: feats ? feats.split('\n').map(s => s.trim()).filter(Boolean) : '',
+        audience
+      });
+      ECOM.attachReport('capital', '资金选品方案（测算）', md, name);
+      const input = `方向名：${name}\n可投资金：¥${m.cap.toLocaleString()}\n单件采购成本：¥${m.cost}\n计划客单价：¥${m.price}\n目标平台：${panel.querySelector('#c_plat').value}\n物流占采购成本：${(m.logi * 100).toFixed(0)}% · 平台费率：${(m.platFee * 100).toFixed(0)}% · 广告占销售额：${(m.ad * 100).toFixed(0)}% · 首单资金占用：${(m.firstPct * 100).toFixed(0)}%`;
+      ECOM.attachForm('capital', '资金选品（输入）', input, name);
+      ECOM.ui.toast('已存为选品简报，归档资金选品方案');
     });
 
     panel.querySelector('#c_ai').addEventListener('click', async (e) => {
@@ -460,6 +493,10 @@ ${capLine}
           ECOM.msg('user', prompt)
         ], { temperature: 0.5 });
         card.set(text, '资金选品方案.md');
+        const name = (panel.querySelector('#c_name').value || '').trim() || (ECOM.getBrief() && ECOM.getBrief().name) || ('资金选品方案');
+        ECOM.attachReport('capital_ai', 'AI 资金选品方案', text, name);
+        const input = `方向名：${name}\n目标平台：${panel.querySelector('#c_plat').value}\n可投资金：¥${m.cap.toLocaleString()}\n单件采购成本：¥${m.cost.toFixed(2)}\n计划客单价：¥${m.price.toFixed(2)}\n物流占比：${(m.logi * 100).toFixed(0)}% · 平台费率：${(m.platFee * 100).toFixed(0)}% · 广告占销售额：${(m.ad * 100).toFixed(0)}%`;
+        ECOM.attachForm('capital_ai', 'AI 资金选品方案（输入）', input, name);
       });
     });
   }
@@ -568,8 +605,18 @@ ${capLine}
       card.set(L.join('\n'), '资金分配方案.md');
       if (detail.length) {
         const f = detail[0];
-        ECOM.setBrief({ name: f.name, cost: f.cost, price: f.price, capital: cap, tier: t.key + '档·' + t.name });
-        ECOM.ui.toast('已存为选品简报，可前往标题/文案/详情页/做图');
+        const name = f.name || (ECOM.getBrief() && ECOM.getBrief().name) || ('资金分配方案');
+        ECOM.setBrief({ name: name, cost: f.cost, price: f.price, capital: cap, tier: t.key + '档·' + t.name });
+        ECOM.attachReport('alloc', '资金分配方案', L.join('\n'), name);
+        const input = `可投资金：¥${cap.toLocaleString()}\n物流占采购成本：${(logi * 100).toFixed(0)}%\n` +
+          rowsBox.children.length + ' 个方向：\n' +
+          [...rowsBox.children].map(r => {
+            const n = r.querySelector('.ar-name').value.trim() || '未命名';
+            const c = r.querySelector('.ar-cost').value, p = r.querySelector('.ar-price').value, q = r.querySelector('.ar-qty').value;
+            return `· ${n}：单件成本¥${c} / 客单价¥${p} / 备货${q}件`;
+          }).join('\n');
+        ECOM.attachForm('alloc', '资金分配（输入）', input, name);
+        ECOM.ui.toast('已存为选品简报，归档资金分配方案');
       }
     });
   }

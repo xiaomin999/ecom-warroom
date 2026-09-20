@@ -111,7 +111,10 @@
         const tier = tierSel || tierOf(ECOM._capital || (ECOM.store.get() || {}).capital || 0) || 'B';
         const out = h.querySelector('#g_out');
         if (!live) {
-          out.innerHTML = guideStatic(name, plat, tier);
+          const r = guideStatic(name, plat, tier);
+          out.innerHTML = r.html;
+          const input = `找货品类：${name}\n主平台：${plat}\n资金档：${tierName(tier)}`;
+          ECOM.attachBoth('find', { aiTitle: '找货方案', ai: r.md, formTitle: '找货方案（输入）', form: input, name: name });
           return;
         }
         if (!ECOM.hasLLM()) { ECOM.ui.toast('请先在「⚙️ 模型设置」填写模型 API'); if (ECOM.openSettings) ECOM.openSettings(); return; }
@@ -131,7 +134,14 @@
 要求：数据来自实时联网搜索并标注平台；不要编造。`;
           const text = await ECOM.llm([{ role: 'system', content: sys }, { role: 'user', content: usr }], { search: true, temperature: 0.3 });
           const d = parseJson(text);
-          out.innerHTML = d ? guideLiveHtml(name, plat, d) : '<p class="hint">模型未返回可解析结果，请重试或改用「生成找货方案」。</p>';
+          if (d) {
+            const r = guideLiveHtml(name, plat, d);
+            out.innerHTML = r.html;
+            const input = `找货品类：${name}\n主平台：${plat}\n资金档：${tierName(tier)}（联网实时搜索）`;
+            ECOM.attachBoth('find', { aiTitle: '找货方案（联网）', ai: r.md, formTitle: '找货方案（输入）', form: input, name: name });
+          } else {
+            out.innerHTML = '<p class="hint">模型未返回可解析结果，请重试或改用「生成找货方案」。</p>';
+          }
         });
       }
 
@@ -143,7 +153,7 @@
           : '在 ' + plat + ' 找货优先用「抖音供应链/拼多多代发/1688 一键铺货」，重点看商家是否支持「48h 发货、7 天无理由、提供实拍视频」。';
         const moq = { A: '先一件代发/拿样 3-5 件测品，不囤货', B: '首单小批量 20-50 件测款，爆了再加单', C: '可谈 100-300 件备货，谈账期', D: '直接找工厂贴牌/定制，MOQ 500+' }[tier];
         const tags = arr => arr.map(x => `<span class="src-tag">${escapeText(x)}</span>`).join('');
-        return `<div class="card">
+        const html = `<div class="card">
           <h3 style="margin-top:0">🔍 ${name} · 找货方案（${plat} · ${tierName(tier)}）</h3>
           <div class="src-section">
             <div class="src-section-title">① 搜索词组合</div>
@@ -179,12 +189,37 @@
             </ul>
           </div>
         </div>`;
+        const md = `## 找货方案（${name} · ${plat} · ${tierName(tier)}）
+
+### ① 搜索词组合
+- 核心词：${kw.slice(0, 3).join('、')}
+- 长尾词：${long.join('、')}
+
+### ② 筛选条件（按优先级）
+1. 深度验厂 / 实力商家
+2. 牛头标（1688 源头工厂标识）
+3. 交易勋章 / 复购率（≥3 冠或复购率高更稳）
+4. 响应 & 发货（响应≤1h、48h 内发货）
+5. 退款率（低于行业均值）
+
+### ③ 源头工厂 vs 贸易商判断
+${facTips}
+
+### ④ 起批量与拿样建议
+${moq}
+
+### ⑤ 新手避坑
+- 先拿样再大货，确认质量/包装/发货速度
+- 问清退换货政策与运费谁出
+- 不要一次性大额定金，分批付
+- 警惕「爆款保证」「稳赚」话术`;
+        return { html, md };
       }
 
       function guideLiveHtml(name, plat, d) {
         const arr = a => Array.isArray(a) ? a.map(x => '<li>' + escapeText(x) + '</li>').join('') : '';
         const tags = a => Array.isArray(a) ? a.map(x => `<span class="src-tag">${escapeText(x)}</span>`).join('') : '';
-        return `<div class="card">
+        const html = `<div class="card">
           <h3 style="margin-top:0">📡 ${name} · 实时货源（${plat}）</h3>
           ${d.searchWords ? `<div class="src-section"><div class="src-section-title">搜索词组合</div><div class="src-tags">${tags(d.searchWords)}</div></div>` : ''}
           ${d.filters ? `<div class="src-section"><div class="src-section-title">筛选条件</div><ol class="src-list">${arr(d.filters)}</ol></div>` : ''}
@@ -194,6 +229,16 @@
           ${d.risk ? `<div class="src-section risk"><div class="src-section-title">风险点</div><ul class="src-list">${arr(d.risk)}</ul></div>` : ''}
           <p class="hint" style="margin:0">数据来自你配置的模型实时联网搜索，仅供参考，下单前务必自行拿样核实。</p>
         </div>`;
+        const md = `## 找货方案（联网实时 · ${name} · ${plat}）
+
+${d.searchWords ? '### 搜索词组合\n' + d.searchWords.map(x => '- ' + x).join('\n') + '\n' : ''}
+${d.filters ? '### 筛选条件\n' + d.filters.map(x => '- ' + x).join('\n') + '\n' : ''}
+${d.factoryTips ? '### 源头判断\n' + d.factoryTips + '\n' : ''}
+${d.priceBand ? '### 价格带\n' + d.priceBand + '\n' : ''}
+${d.moq ? '### 起批量 / 拿样\n' + d.moq + '\n' : ''}
+${d.risk ? '### 风险点\n' + d.risk.map(x => '- ' + x).join('\n') + '\n' : ''}
+> 数据来自模型实时联网搜索，仅供参考，下单前务必自行拿样核实。`;
+        return { html, md };
       }
 
       /* ============ 子 tab 2：货源体检 ============ */
@@ -427,6 +472,7 @@
             <div class="row" style="margin-top:10px;gap:8px">
               <button class="secondary-btn" id="cmp_add">＋ 加一行</button>
               <button class="secondary-btn" id="cmp_clear">清空</button>
+              <button class="secondary-btn" id="cmp_save">💾 存入选品库</button>
               <button class="primary-btn" id="cmp_pdf">📑 导出 PDF</button>
               <button class="primary-btn" id="cmp_doc">📝 导出 Word</button>
             </div>
@@ -517,6 +563,18 @@
         }
         h.querySelector('#cmp_pdf').addEventListener('click', () => ECOM.ui.exportPDF('供应商对比.pdf', '供应商对比', toMd()));
         h.querySelector('#cmp_doc').addEventListener('click', () => ECOM.ui.exportWord('供应商对比.doc', '供应商对比', toMd()));
+        h.querySelector('#cmp_save').addEventListener('click', () => {
+          const named = rows.filter(r => r.name && String(r.name).trim());
+          if (!named.length) { ECOM.ui.toast('请先填写至少一个供应商名称再保存'); return; }
+          const md = toMd();
+          let name = (ECOM.getBrief() && ECOM.getBrief().name) || '';
+          if (!name) {
+            const ex = ECOM.briefLib.list().find(b => b.name === '供应商对比清单');
+            name = ex ? ex.name : '供应商对比清单';
+          }
+          ECOM.attachReport('sourcing_compare', '供应商对比', md, name);
+          ECOM.ui.toast('供应商对比已存入「' + name + '」资料库');
+        });
       }
     }
   });
